@@ -152,6 +152,11 @@ is blocked by the teamspace's integration setting).
 
 ### How to unblock the 12 (in Notion)
 
+> **Update (2026-06-26):** the boss flagged these 12 as **not canonical**
+> (legacy/secondary). Unblocking them is therefore **optional / low priority**.
+> The 12 accessible DBs + Ecosystem are the active set; `docs/data-map.md` now
+> reflects canonical status. Keep the steps below for if/when access is needed.
+
 For each blocked database (or a parent page that contains them, cascaded):
 
 1. Open the database in Notion.

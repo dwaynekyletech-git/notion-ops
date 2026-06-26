@@ -50,6 +50,25 @@ doesn't expose the needed operation. For `ntn datasources query`, strip the
 | Ideas | `https://www.notion.so/2dbffe5c4f7481398ee0f5d86fc3a2cb` | `collection://2dbffe5c-4f74-8188-af13-000b1dabbb9a` | Raw product/service ideas |
 | Projects | `https://www.notion.so/a98ffe5c4f748248b51a81af4141c0b1` | `collection://a98ffe5c-4f74-8248-b51a-81af4141c0b1` | Project intel (architecture, data flows) |
 
+### Canonical status (2026-06-26)
+
+Per boss, 2026-06-26: the 12 **restricted** databases below are **not canonical**
+— treat them as legacy/secondary and verify before use; do not query them as the
+source of truth. The 12 **accessible** databases are the active set for
+PAT/CLI/MCP work (canonical within this map, pending a definitive list from the
+boss).
+
+**✅ Canonical / active — PAT-accessible (12):** Contacts, Companies, Meetings,
+Pitches, Deliverables, Public Workshops, Revenue Tasks (FDE), Sprints, Product
+SKUs, Goals, Ideas, Projects.
+
+**⚠️ Not canonical — restricted, verify before use (12):** Opportunities, Company
+Info (AGIVC), Lessons Learned, Docs, Emails, Invoices, Contractors, Contractor
+Contracts, Applied AI Hours, Content Calendar, Jobs Description, Candidates.
+
+Unblocking the restricted 12 is therefore **optional / low priority**. See
+`docs/access-audit.md` for the per-database access probe and unblock steps.
+
 Applied AI product workspace parent:
 `https://www.notion.so/Applied-AI-2dbffe5c4f748120a971c42c6a7476b1`
 
