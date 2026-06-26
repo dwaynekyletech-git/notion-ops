@@ -1,0 +1,25 @@
+# Secrets / auth
+.env
+.env.*
+*.token
+auth.json
+credentials.json
+
+# Local Notion CLI state
+.config/
+
+# Worker build / deps
+workers/*/node_modules/
+workers/*/dist/
+workers/*/.wrangler/
+workers/*/target/
+*.wasm
+
+# Scratch & caches
+/tmp/
+.cache/
+output/
+*.log
+
+# OS
+.DS_Store
