@@ -175,8 +175,11 @@ notion-ops/
 ├── docs/
 │   ├── ntn-cheatsheet.md  # copy-paste recipes for the CLI
 │   ├── data-map.md        # condensed CRM map (mirror of the live skill)
+│   ├── access-audit.md    # what the notion-labs integration can/can't reach
 │   └── compliance.md      # IP / confidentiality / data-handling rules
 ├── scripts/               # one-off and reusable shell scripts
+│   ├── audit-access.sh    # probe which databases the integration can reach
+│   ├── dump-data-source.sh# dump a CRM data source to JSON
 │   └── lib/               # shared helpers (ID resolution, logging)
 └── workers/               # deployed Notion Workers (one folder each)
 ```
