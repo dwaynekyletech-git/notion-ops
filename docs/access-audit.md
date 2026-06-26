@@ -126,6 +126,45 @@ settings in Notion (or share a parent page in that area and cascade), then
 re-audit. If they remain blocked even after sharing, the user account itself
 may have limited access there.
 
+### Why the 12 are blocked (investigation, 2026-06-26)
+
+Confirmed via the Notion MCP (which runs as a third integration, `1f8d872b-…`,
+acting as Dwayne):
+
+- MCP fetches **Ecosystem** and **Contacts** successfully, but **404s on
+  Opportunities and Invoices** — the same `object_not_found` as the PAT. So all
+  three API integrations (PAT, `notion-labs`, MCP plugin) are blocked from the
+  same 12 databases. It is **not** PAT-specific.
+- `notion-get-teams` shows Dwayne is a member of all 3 teamspaces —
+  `Dwayne's Test Teamspace` (owner), `Ecosystem` (member), `Revenue Org`
+  (member). `otherTeams` is empty, so no teamspace is off-limits by membership.
+- Opportunities definitely exists: the accessible Contacts DB has an
+  `Opportunities` relation pointing at data source
+  `collection://2dbffe5c-4f74-81cb-9b53-000b23acf6c0`.
+
+**Diagnosis:** the 12 blocked databases are individually **restricted** pages
+(common for sensitive deal/billing/HR DBs like Opportunities, Invoices,
+Contractors, Candidates). Restricted pages do not auto-share with integrations
+the way open teamspace pages do — each integration must be added to the page's
+access list explicitly. Ecosystem, by contrast, is member-accessible, so the
+user-acting PAT/MCP reach it via membership (while the pure-bot `notion-labs`
+is blocked by the teamspace's integration setting).
+
+### How to unblock the 12 (in Notion)
+
+For each blocked database (or a parent page that contains them, cascaded):
+
+1. Open the database in Notion.
+2. **Share** menu (or `•••` → **Connections** → **Add connections**).
+3. Add **`Dwayne's PAT`** (for CLI/PAT access). Add the **notion-workspace**
+   integration too if you want MCP access there.
+4. Confirm, then re-run `scripts/audit-access.sh`.
+
+If a database is in a teamspace whose settings you can't change (you're a
+*member*, not owner, of Ecosystem and Revenue Org) and the integration can't be
+added, ask a teamspace owner to either enable integrations or add the
+integration to those pages for you.
+
 ## Audit: notion-labs (legacy) — 9 shared / 15 no-access
 
 For comparison (run by exporting `NOTION_API_TOKEN_LEGACY` as `NOTION_API_TOKEN`).
