@@ -53,6 +53,25 @@ doesn't expose the needed operation. For `ntn datasources query`, strip the
 Applied AI product workspace parent:
 `https://www.notion.so/Applied-AI-2dbffe5c4f748120a971c42c6a7476b1`
 
+### Ecosystem teamspace (accessible via the PAT, not via notion-labs)
+
+The Ecosystem teamspace blocks integrations, so `notion-labs` cannot reach it.
+`Dwayne's PAT` can (it acts as your user). These databases are **not** in the
+`where-to-find-data` skill — discover more by fetching a subpage with
+`ntn pages get <id>` and reading the `<database …>` links.
+
+**Hub:** `https://app.notion.com/p/Ecosystem-2dbffe5c4f74800da0f2d30c424f8acc`
+
+| Database | Database ID | Data source ID |
+| --- | --- | --- |
+| Events | `2dbffe5c4f74816a8e19d5410fb755c6` | `collection://2dbffe5c-4f74-812d-bbcc-000b2c05cc51` |
+| Sponsorship Opportunities | `34691ce34f484c238de33e335b251245` | (resolve to confirm) |
+| Inline DB (under Initiatives) | `2dbffe5c4f7481dc8efbe142adafab3f` | (resolve to confirm) |
+
+Section subpages (Company, Community, Meetings, Initiatives & Programs,
+Contacts & CRM, Notes & Postmortems, Archive) are listed in
+`docs/access-audit.md`.
+
 ## CRM relationship graph
 
 ```
