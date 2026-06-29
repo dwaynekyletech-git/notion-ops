@@ -7,6 +7,7 @@ Reusable shell scripts for Notion operations via `ntn`.
 ```
 scripts/
 ├── lib/common.sh            # shared helpers (sourced by other scripts)
+├── notion-api.sh            # fallback curl wrapper for PAT + hard-timeout cases
 ├── dump-data-source.sh      # dump a CRM data source to JSON
 └── ...                      # add more here as the work grows
 ```
@@ -42,4 +43,7 @@ ntn datasources resolve 2dbffe5c4f7481b8a0c8ceb7a6d0f30e --json
 
 # Read a page as markdown
 ntn pages get <page-id>
+
+# Direct REST API via ntn
+ntn api v1/databases/<id> | jq '.properties | keys'
 ```

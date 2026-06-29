@@ -90,6 +90,30 @@ ntn api v1/search -d '{"query":"Ecosystem","page_size":20}'
 Input syntax precedence: `path:=json` > `name==value` > `Header:Value` > `path=value`.
 Use `:=` for numbers/booleans/arrays/objects/null; use `=` to store a JSON string.
 
+### `ntn api` gotchas (read before using)
+
+- **Use `ntn update` before debugging odd API behavior.** On `ntn` 0.18.0,
+  method-ambiguous endpoints such as `v1/databases/{database_id}` could hang in
+  Cursor's non-interactive shell. After updating to 0.18.1, the same calls were
+  verified from Cursor and returned normally, including with `NOTION_API_TOKEN`
+  and `NOTION_WORKSPACE_ID` unset.
+- **`--json` is not a valid `ntn api` flag** (it belongs to `pages`/`datasources`).
+  `ntn api` already emits JSON; don't pass `--json`.
+
+### Direct API defaults
+
+Use `ntn api` first for direct API calls. `scripts/notion-api.sh` is only a
+fallback for automation that needs repo `.env` PAT auth, a hard 30s network
+timeout, or explicit `curl` behavior. stdout is pure JSON (pipe to `jq`); the
+HTTP status prints to stderr.
+
+```bash
+ntn api v1/databases/<id> | jq '.properties | keys'
+ntn api v1/pages -d '{"parent":{"database_id":"…"},"properties":{…}}'
+ntn api v1/pages -d @body.json
+ntn api -X PATCH v1/pages/<id> -d '{"archived":true}'
+```
+
 ## File uploads
 
 ```bash
