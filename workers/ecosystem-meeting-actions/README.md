@@ -19,14 +19,45 @@ database, with reasoning billed to your **Cursor credits**.
 4. Every run is recorded in a managed **"Ecosystem Meeting Actions Log"**
    database (created by the worker integration **outside** Ecosystem).
 
+The same worker also exposes a Custom-Agent-callable tool:
+
+- `processMeetingNote({ meetingPageId, dryRun?, force? })`
+- The Notion Agent should call this tool instead of creating tasks or editing
+  Ecosystem pages directly.
+- `dryRun: true` returns proposed actions without writing.
+- `force: true` reprocesses a page even when `Actions Processed` is already
+  checked.
+
 ## Why the PAT, not `context.notion`
 
 The Ecosystem teamspace **blocks integrations**, so the worker's own
 integration cannot read or write anything in Ecosystem. Dwayne's **personal
 access token acts as the user** and bypasses that block (read + write
 confirmed 2026-06-29 against both the Ecosystem Notes and Ecosystem Tasks DBs).
-The PAT is stored as the `NOTION_API_TOKEN` worker secret and all Notion calls
-go through `src/pat-notion.ts` (a `fetch` wrapper with a hard 30s timeout).
+The PAT is stored as a **worker secret** via `ntn workers env set` — set it
+**once**, not on every deploy or agent run. Secrets persist on the deployed
+worker until you rotate or delete them (your existing `NOTION_API_TOKEN`,
+`CURSOR_API_KEY`, etc. were set on 2026-06-29 and are still there).
+
+We use two env var names for the same PAT value:
+
+| Var | Used by | Why separate |
+| --- | --- | --- |
+| `NOTION_API_TOKEN` | Scheduled sync | You set this yourself; Notion does not overwrite it during sync runs. |
+| `ECOSYSTEM_NOTION_PAT` | Agent tool calls | When a Custom Agent invokes a worker tool, Notion **auto-injects** `NOTION_API_TOKEN` with the agent bot's limited token. A custom secret name avoids that overwrite. |
+
+Set both to the **same PAT value**, once:
+
+```bash
+ntn workers env set NOTION_API_TOKEN=ntn_...      # if not already set (sync)
+ntn workers env set ECOSYSTEM_NOTION_PAT=ntn_...  # same value (agent tool)
+```
+
+No redeploy is required after `env set` — the remote worker picks up new secrets
+immediately. Redeploy only when you change worker **code**.
+
+All Notion calls go through `src/pat-notion.ts` (a `fetch` wrapper with a hard
+30s timeout).
 
 > Security note: the PAT makes the worker act as Dwayne with the PAT's full
 > reach. Fine for an internal tool you own. Rotate the PAT if it expires
@@ -66,7 +97,8 @@ Required keys are **(req)**.
 
 | Key | Default | Purpose |
 | --- | --- | --- |
-| `NOTION_API_TOKEN` **(req)** | — | Dwayne's PAT. Reaches Ecosystem as the user. |
+| `ECOSYSTEM_NOTION_PAT` **(req for agent tool)** | — | Dwayne's PAT. Reaches Ecosystem as the user. Use this for Custom Agent tool calls. |
+| `NOTION_API_TOKEN` **(fallback)** | — | Backwards-compatible fallback for sync-only deploys. Do not rely on this for agent tools. |
 | `NOTION_VERSION` | `2022-06-28` | Notion API version header. |
 
 ### Sources / targets
@@ -93,17 +125,52 @@ Required keys are **(req)**.
 | `MAX_MEETINGS_PER_CYCLE` | `3` | Meetings processed per scheduled tick. Keep small — each makes a multi-second Cursor call. |
 | `SYNC_SCHEDULE` | `30m` | One of `5m`, `15m`, `30m`, `1h`, `1d`, `manual`. Requires redeploy to change. |
 
-## Deploy
+## One-time secrets (do this once, not every deploy)
+
+```bash
+cd workers/ecosystem-meeting-actions
+ntn workers env set CURSOR_API_KEY=sk-...                                   # (req)
+ntn workers env set NOTION_API_TOKEN=ntn_...                                # (req) PAT for scheduled sync
+ntn workers env set ECOSYSTEM_NOTION_PAT=ntn_...                            # (req) same PAT — for agent tool calls
+ntn workers env set MEETINGS_DATABASE_ID=2dbffe5c-4f74-81ba-992e-fcd07648104b
+ntn workers env set TASKS_DATABASE_ID=306ffe5c-4f74-8169-9349-eebfecaf9d8c
+ntn workers env ls                                                          # verify keys are present
+```
+
+If you already set `NOTION_API_TOKEN` earlier, you only need to add
+`ECOSYSTEM_NOTION_PAT` with the same value before connecting the Notion Agent.
+
+## Deploy (when code changes)
 
 ```bash
 cd workers/ecosystem-meeting-actions
 npm install
-ntn workers env set CURSOR_API_KEY=sk-...                                   # (req)
-ntn workers env set NOTION_API_TOKEN=<Dwayne's PAT>                         # (req)
-ntn workers env set MEETINGS_DATABASE_ID=2dbffe5c-4f74-81ba-992e-fcd07648104b
-ntn workers env set TASKS_DATABASE_ID=306ffe5c-4f74-8169-9349-eebfecaf9d8c
-# ...override any other defaults you need...
 ntn workers deploy --name ecosystem-meeting-actions
+```
+
+## Connect the Notion Agent
+
+In the Notion Custom Agent:
+
+1. Go to **Tools and access**.
+2. Add the deployed `ecosystem-meeting-actions` Worker.
+3. Enable the `Process Ecosystem Meeting Note` tool.
+4. Keep the existing trigger on Ecosystem Notes where:
+   - `Type` is `Meeting Notes`
+   - `Actions Processed` is unchecked
+5. Add this to the agent instructions:
+
+```text
+When a triggered Ecosystem meeting note needs action extraction, do not create
+tasks, edit the note, or comment directly. Call the Worker tool named
+"Process Ecosystem Meeting Note" with:
+
+- meetingPageId: the triggered Notion page ID or URL
+- dryRun: false
+- force: false
+
+If the tool reports status "skipped", stop. If it reports status "error",
+summarize the error for Dwayne and do not retry repeatedly.
 ```
 
 ## Operate

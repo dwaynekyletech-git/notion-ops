@@ -96,6 +96,10 @@ export class PatNotion {
 		};
 	}
 
+	async retrievePage(pageId: string): Promise<any> {
+		return this.request("GET", `v1/pages/${pageId}`);
+	}
+
 	async createPage(
 		parent: any,
 		properties: Record<string, any>,

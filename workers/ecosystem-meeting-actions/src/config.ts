@@ -2,9 +2,10 @@
 // All values come from worker secrets/env set via `ntn workers env set`.
 // Required keys throw a clear error so a misconfigured deploy fails fast.
 //
-// IMPORTANT: this worker reaches Notion through Dwayne's PAT (NOTION_API_TOKEN),
-// not the worker integration, because the Ecosystem teamspace blocks
-// integrations. The PAT acts as the user and can read/write Ecosystem.
+// IMPORTANT: this worker reaches Notion through Dwayne's PAT, not the worker
+// integration, because the Ecosystem teamspace blocks integrations. For Custom
+// Agent tool calls, set ECOSYSTEM_NOTION_PAT so we don't accidentally use
+// Notion's auto-injected agent token from context.notion / NOTION_API_TOKEN.
 
 export interface Config {
 	// Cursor (reasoning runs on Cursor credits)
@@ -76,7 +77,9 @@ export function loadConfig(): Config {
 		cursorFast: bool("CURSOR_FAST", true),
 		cursorTimeoutMs: int("CURSOR_TIMEOUT_MS", 240_000),
 
-		notionApiToken: req("NOTION_API_TOKEN"),
+		// Keep NOTION_API_TOKEN as a backwards-compatible fallback for sync-only
+		// deploys, but agent tools should set ECOSYSTEM_NOTION_PAT explicitly.
+		notionApiToken: opt("ECOSYSTEM_NOTION_PAT") ?? req("NOTION_API_TOKEN"),
 		notionVersion: opt("NOTION_VERSION") ?? "2022-06-28",
 
 		meetingsDatabaseId: req("MEETINGS_DATABASE_ID"),

@@ -47,13 +47,26 @@ Important sync semantics that shaped the design:
 ```
 Notion Meeting Notes (checkbox filter) ─▶ Worker sync (15m)
    Worker ─▶ POST /v1/agents (Cursor, no repo) ─▶ poll run ─▶ JSON
-   Worker ─▶ context.notion: create Tasks, create Decisions, append summary, set checkbox
+   Worker ─▶ PAT-backed Notion API: create Tasks, append summary, set checkbox
    Worker ─▶ managed "Meeting Actions Log" DB row
 ```
 
 Why this works today: Workers and the Cloud Agents API are both public beta.
 Billing: Cursor credits for reasoning; Notion credits only for the thin Worker
 glue (and free during the Workers beta).
+
+### Option A2 — Notion Custom Agent trigger + Worker tool (current agent path)
+
+```
+Notion Custom Agent trigger on Meeting Notes ─▶ processMeetingNote tool
+   Tool ─▶ POST /v1/agents (Cursor, no repo) ─▶ poll run ─▶ JSON
+   Tool ─▶ PAT-backed Notion API: create Tasks, append summary, set checkbox
+```
+
+This keeps the agent in charge of deciding when to invoke the workflow while the
+worker performs the bounded writes. The agent should not directly create tasks
+or edit the meeting note; it should call `processMeetingNote` with the triggered
+page ID.
 
 ### Option B — External Agents API native integration (waitlisted)
 
